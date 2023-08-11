@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+import datetime
 
 
 class task(models.Model):
      _name = 'manage.task'
      _description = 'manage.task'
 
+     code = fields.Char(compute='_get_code')
      name = fields.Char(String='Nombre', readonly=False, required=True, help='Introduzca el nombre')
      description = fields.Text()
      creation_date = fields.Date()
@@ -18,16 +20,34 @@ class task(models.Model):
                                      relation_name='technologies_tasks',
                                      column1='task_id',
                                      column2='technology_id')
+     #@api.one
+     def _get_code(self):
+          for task in self:
+               if len(task.sprint) == 0:
+                    task.code = 'TSK_'+str(task.id)
+               else:
+                    task.code = str(task.sprint.name).upper()+'_'+str(task.id) 
+
 
 class sprint(models.Model):
      _name = 'manage.sprint'
      _description = 'manage.sprint'
 
+     
      name = fields.Char()
      description = fields.Text()
+     duration = fields.Integer()
      start_date = fields.Datetime()
-     end_date = fields.Datetime()
+     end_date = fields.Datetime(compute='_get_end_date', store=True)
      tasks = fields.One2many(string='Tareas',comodel_name= 'manage.task',inverse_name= 'sprint')
+
+     @api.depends('start_date', 'duration')
+     def _get_end_date(self):
+          for sprint in self:
+               if isinstance(sprint.start_date, datetime.datetime) and sprint.duration > 0:
+                    sprint.end_date = sprint.start_date + datetime.timedelta(days=sprint.duration)
+               else:
+                    sprint.end_date = sprint.start_date     
 
 class technology(models.Model):
      _name = 'manage.technology'
