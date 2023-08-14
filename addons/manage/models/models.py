@@ -8,6 +8,14 @@ import logging
 
 _logger = logging.getLogger(__name__)#Informacion que obtiene del fichero de configuracion
 
+class developer(models.Model):
+     _name = 'res.partner'
+     _inherit = 'res.partner'
+
+     technologies = fields.Many2many('manage.technology',
+                                   relation='developer_technologies',
+                                   column1='developer_id',
+                                   column2='technologies_id')
 
 class project(models.Model):
      _name = 'manage.project'
@@ -42,6 +50,8 @@ class task(models.Model):
      _name = 'manage.task'
      _description = 'manage.task'
 
+
+     definition_date = fields.Datetime(default=lambda d: datetime.datetime.now())
      project = fields.Many2one('manage.project', related='history.project', readonly=True)
      code = fields.Char(compute='_get_code')
      name = fields.Char(String='Nombre', readonly=False, required=True, help='Introduzca el nombre')
@@ -77,6 +87,7 @@ class task(models.Model):
                     task.sprint=False
 
 
+     
 
 
 class sprint(models.Model):
@@ -86,7 +97,7 @@ class sprint(models.Model):
      project = fields.Many2one('manage.project')
      name = fields.Char()
      description = fields.Text()
-     duration = fields.Integer()
+     duration = fields.Integer(default=15)
      start_date = fields.Datetime()
      end_date = fields.Datetime(compute='_get_end_date', store=True)
      tasks = fields.One2many(string='Tareas',comodel_name= 'manage.task',inverse_name= 'sprint')
